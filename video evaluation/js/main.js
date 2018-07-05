@@ -15,6 +15,29 @@ function getCurTruckTime() {
     trafficList.trucks.push({ truckTime: vid.currentTime })
 };
 
+var playbackRate = vid.playbackRate;
+
+
+function setPlaySpeedDown() {
+    playbackRate = playbackRate - 0.5;
+    vid.playbackRate = playbackRate;
+    currentSpeed.speedRate = playbackRate + "x";
+}
+
+function setPlaySpeedUp() {
+    playbackRate = playbackRate + 0.5;
+    vid.playbackRate = playbackRate;
+    currentSpeed.speedRate = playbackRate + "x";
+}
+
+var currentSpeed = new Vue({
+    el: '#currentSpeed',
+    data: {
+        speedRate: playbackRate + "x",
+    }
+});
+
+
 
 //data
 var trafficList = new Vue({
@@ -58,5 +81,4 @@ function onTrackedVideoFrame(currentTime, duration){
 window.onbeforeunload = function() {
     return "Bye now!";
 };
-
 

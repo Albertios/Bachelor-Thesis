@@ -61,7 +61,7 @@ iframe,
 img,
 svg,
 video {
-   // vertical-align: middle;
+// vertical-align: middle;
     max-width: 100%;
     height: auto;
 }
@@ -115,7 +115,7 @@ button{
 
 
 div{
-    border-style: hidden;
+    /*border-style: hidden;*/
     /*border-style: solid;*/
     /*border-color: coral;*/
 }
@@ -166,6 +166,7 @@ ol {
 li {
     flex: 0 0 auto;
 }
+
 
 
 
@@ -264,9 +265,9 @@ li {
 }
 
 @media print,
-       (-webkit-min-device-pixel-ratio: 1.25),
-       (min-resolution: 1.25dppx),
-       (min-resolution: 120dpi) {
+(-webkit-min-device-pixel-ratio: 1.25),
+(min-resolution: 1.25dppx),
+(min-resolution: 120dpi) {
     /* Style adjustments for high resolution devices */
 }
 
@@ -345,4 +346,3 @@ li {
         page-break-after: avoid;
     }
 }
-
