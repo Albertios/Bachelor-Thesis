@@ -63,6 +63,26 @@ Mousetrap.bind('3', function getCurTruckTime() {
     trafficList.trucks.push({ truckTime: vid.currentTime });
 });
 
+
+//Keyboard Shortcut
+Mousetrap.bind('+', function setPlaySpeedUp() {
+    playbackRate = playbackRate + 0.5;
+    vid.playbackRate = playbackRate;
+    currentSpeed.speedRate = playbackRate + "x";
+});
+
+
+//Keyboard Shortcut
+Mousetrap.bind('-', function setPlaySpeedDown() {
+    playbackRate = playbackRate - 0.5;
+    vid.playbackRate = playbackRate;
+    currentSpeed.speedRate = playbackRate + "x";
+});
+
+Mousetrap.bind('#', function jumpBack() {
+    vid.currentTime = vid.currentTime - 5;
+});
+
 $(document).ready(function(){
     $("#myVideo").on(
         "timeupdate",
