@@ -17,24 +17,21 @@ setwd("/Users/Alf/Documents/GitHub/Bachelor/R/")
 
 #csvDataFromArduino <- read.table(file = CSVdata, sep = ",")
 
-csvDataFromArduino <- read.table(file = "./csv/4_July_Heisenbergstrasse.csv", sep = ",")
+csvDataFromArduino <- read.table(file = "./csv/26_July_Steinfurterstrasse.csv", sep = ",")
 
 #change head name of the first & second column
 colnames(csvDataFromArduino) <- c("timeInMilliseconds", "signalStrength")
 
-
-
-jsonCar <- fromJSON("./json/4cars.json")
-#jsonCar <- fromJSON("./json/carTime4thJuly.json")
-jsonBicycle <-fromJSON("./json/4bicycles.json")
-jsonTruck <- fromJSON("./json/4pedestrians.json")
+jsonCar <- fromJSON("./json/carTime26thJuly.json")
+jsonBicycle <-fromJSON("./json/bicycleTime26thJuly.json")
+jsonTruck <- fromJSON("./json/truckTime26thJuly.json")
 
 
 
 # minus video time until adruino turns on; multiply 1000 to convert seconds to millisecond
-jsonCar <- (jsonCar - 589.726292) * 1000 
-jsonBicycle <- (jsonBicycle - 589.726292) * 1000
-jsonTruck <- (jsonTruck - 589.726292) * 1000
+jsonCar <- (jsonCar - 675.675543) * 1000
+jsonBicycle <- (jsonBicycle - 675.675543) * 1000
+jsonTruck <- (jsonTruck - 675.675543) * 1000
 
 
 
@@ -44,13 +41,9 @@ jsonBicycle <- jsonBicycle[ jsonBicycle < max(csvDataFromArduino$timeInMilliseco
 jsonTruck <- jsonTruck[ jsonTruck < max(csvDataFromArduino$timeInMilliseconds) ]
 
 
-# Remove elements larger than max of jsonCar:
-maxTimeInMilliseconds <- csvDataFromArduino$timeInMilliseconds[ csvDataFromArduino$timeInMilliseconds < max(jsonCar) ]
+# Remove elements larger than max of timeInMilliseconds:
+csvDataFromArduino$timeInMilliseconds <- csvDataFromArduino$timeInMilliseconds[ csvDataFromArduino$timeInMilliseconds < max(jsonCar) ]
 
-# Remove elements larger than max of maxTimeInMilliseconds:
-csvDataFromArduino <- csvDataFromArduino[1:length(maxTimeInMilliseconds),]
-
-csvDataFromArduino$timeInMilliseconds <- csvDataFromArduino$timeInMilliseconds * 1000
 
 # convert in minutes
 #timeInMinutes <- format( as.POSIXct(Sys.Date())+csvDataFromArduino$timeInMilliseconds/1000, "%M:%S")
@@ -102,24 +95,21 @@ listSignalStrength <- amplitudecsvDataFromArduino$signalStrength
 for (i in 1:(amplitudecsvDataFromArduinoLength)){
   nextValue <-listSignalStrength[i+1]
   AmplitudeList[i]<- c(if (listSignalStrength[i] <= nextValue) {
-    listSignalStrength[i]-listSignalStrength[i+1]
+    0
   }else{
-    (listSignalStrength[i]-listSignalStrength[i+1])
-    #/2 it is not ne
-    #https://www.inhaltsangabe.info/s-mathematik/die-amplitude-berechnen-bestimmen-definition-formel
-    #(listSignalStrength[i]-listSignalStrength[i+1]) / 2
+    (listSignalStrength[i]-listSignalStrength[i+1]) / 2
   })
 }
 
 #----------------------------------------------------------------------
 
-vehicleFilterCar = 0
+vehicleFilterCar = 5
 filteredAmplitudeListCar <- NA
 
 vehicleFilterBicycle = 2
 filteredAmplitudeListBicycle <- NA
 
-vehicleFilterTruck = 111
+vehicleFilterTruck = 11
 filteredAmplitudeListTruck <- NA
 
 #**********************************************************************
@@ -140,23 +130,11 @@ videoCountingCars <- length(jsonCar[!is.na(jsonCar)])
 accuracyCars <- 100 / videoCountingCars * wifiCountingCars 
 
 #plot car
- print(ggplot(data=data.frame(x=amplitudecsvDataFromArduino$timeInMilliseconds[-length(amplitudecsvDataFromArduino$timeInMilliseconds) ] , y=AmplitudeList) ,aes(x=x, y=y)) + 
-        geom_histogram(stat = "identity") + 
+print(ggplot(data=data.frame(x=amplitudecsvDataFromArduino$timeInMilliseconds[-length(amplitudecsvDataFromArduino$timeInMilliseconds) ] , y=filteredAmplitudeListCar) ,aes(x=x, y=y)) +  geom_line() + 
         geom_vline(xintercept = jsonCar, colour="red", linetype = 3) +
-        geom_vline(xintercept = jsonBicycle, colour="blue", linetype = 3) +
-        geom_vline(xintercept = jsonTruck, colour="green", linetype = 3) +
         labs(title = ( main = paste("counted cars with wifi:", wifiCountingCars, " counted cars from the video:", videoCountingCars )),
-             subtitle = ( main = paste("accuracy", (round(accuracyCars)),"%" , "car=red, bicycle=blue, pedestrain=green" )),
+             subtitle = ( main = paste("accuracy", (round(accuracyCars)),"%" )),
              x = "time", y = "Strength:")  )
-
-
-
- counts <- table(mtcars$gear)
- barplot(AmplitudeList, main="Car Distribution", 
-         xlab="Number of Gears")
- 
- 
- 
 
 #**********************************************************************
 # bicycle
@@ -225,7 +203,7 @@ print(ggplot(data=data.frame(x=csvDataFromArduino$timeInMilliseconds[-length(csv
 
 
 
-twoY <- paste(csvDataFromArduino$signalStrength, filteredAmplitudeListCar)
+
 
 
 
