@@ -1,0 +1,126 @@
+<!doctype html>
+<html class="no-js" lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="apple-touch-icon" href="icon.png">
+    <!-- Place favicon.ico in the root directory -->
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/vendor/mousetrap.js"></script>
+</head>
+<body>
+<!--[if lte IE 9]>
+<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+<![endif]-->
+
+
+<!-- Add your site or application content here -->
+<h2>Video Evaluation</h2>
+<p style="float: left">Keyboard Shortcut for Car:<code>1</code> Bicycle:<code>2</code> Truck:<code>3</code> Vehicles:<code>4</code>
+    Speed up:<code>+</code> slow down:<code>-</code> skip back:<code>#</code>
+</p>
+<br>
+<br>
+<div>
+    <div id="currentSpeed" style="float:left ; width: 200px">
+        <p>Video speed: {{ speedRate }}</p><button id="speedDown" onclick="setPlaySpeedDown()">-</button><button id="speedUp" onclick="setPlaySpeedUp()">+</button>
+    </div>
+    <div>
+        <p>current: <b id="current">0:00</b> </p>
+        <p>duration: <b id="duration">0:00</b> </p>
+    </div>
+</div>
+
+<div>
+    <video id="myVideo" width="900" controls>
+        <source id="myVideoSource" src="/Users/Alf/Documents/GitHub/Bachelor/video evaluation steinfurterstrasse/Videos/steinfurterstrasse26July.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+</div>
+<div id="trafficList">
+    <div class="topright">
+        <table id="trafficTable" style="overflow: auto" >
+            <tr>
+                <th >Car</th>
+                <th>Bicycle</th>
+                <th>Truck / Bus</th>
+                <th>two Vehicles</th>
+            </tr>
+            <tr>
+                <td>
+                    <ol>
+                        <li v-for="(car, indexCar) in cars">
+                            {{ car.carTime }}
+                            <button v-on:click= "cars.splice( indexCar, 1)"> X </button>
+                        </li>
+                    </ol>
+                </td>
+                <td>
+                    <ol>
+                        <li v-for="(bicycle, indexBicycle) in bicycles">
+                            {{ bicycle.bicycleTime }}
+                            <button v-on:click= "bicycles.splice(indexBicycle, 1)"> X </button>
+                        </li>
+                    </ol>
+                </td>
+                <td>
+                    <ol>
+                        <li v-for="(truck, indexTruck) in trucks">
+                            {{ truck.truckTime }}
+                            <button v-on:click= "trucks.splice(indexTruck, 1)"> X </button>
+                        </li>
+                    </ol>
+                </td>
+                <td>
+                    <ol>
+                        <li v-for="(vehicle, indexVehicle) in vehicles">
+                            {{ vehicle.vehicleTime }}
+                            <button v-on:click= "vehicles.splice(indexVehicle, 1)"> X </button>
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div>
+        <button id="carTime" onclick="getCurCarTime()" type="button" class="btn btn-danger btn-lg btnSize">Car</button>
+        <button id="bicycleTime" onclick="getCurBicycleTime()" type="button" class="btn btn-success btn-lg btnSize">Bicycle</button>
+        <button id="truckTime" onclick="getCurTruckTime()" type="button" class="btn btn-info btn-lg btnSize">Bus / Truck</button>
+        <button id="vehicleTime" onclick="getCurVehiclesTime()" type="button" class="btn btn-warning btn-lg btnSize">two Vehicles</button>
+    </div>
+
+    <div id="json">
+        <textarea class="jsonCar" onfocus="this.select()">{{ cars | json }}</textarea>
+        <textarea class="jsonCar" onfocus="this.select()">{{ bicycles | json }}</textarea>
+        <textarea class="jsonCar" onfocus="this.select()">{{ trucks | json }}</textarea>
+        <textarea class="jsonCar" onfocus="this.select()">{{ vehicles | json }}</textarea>
+    </div>
+
+</div>
+
+
+
+
+<script src="js/vendor/modernizr-3.5.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>
+<script src="js/plugins.js"></script>
+<script src="js/main.js"></script>
+
+
+</body>
+</html>
