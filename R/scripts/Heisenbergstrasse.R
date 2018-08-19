@@ -2,6 +2,8 @@ library(ggplot2)        # plot
 library(lubridate)      # easily work with dates and times
 library(zoo)            # working with time series data
 library(jsonlite)       # json
+library(scales)
+library(lubridate)
 #___________________________________________________________________________________________________________________________
 
 # main folder
@@ -24,10 +26,10 @@ colnames(csvDataFromArduino) <- c("timeInMilliseconds", "signalStrength")
 
 
 
-jsonCar <- fromJSON("./json/4cars.json")
+jsonCar <- fromJSON("./json/carTime4thJuly.json")
 #jsonCar <- fromJSON("./json/carTime4thJuly.json")
-jsonBicycle <-fromJSON("./json/4bicycles.json")
-jsonTruck <- fromJSON("./json/4pedestrians.json")
+jsonBicycle <-fromJSON("./json/bicycleTime4thJuly.json")
+jsonTruck <- fromJSON("./json/truckTime4thJuly.json")
 
 
 
@@ -50,19 +52,91 @@ maxTimeInMilliseconds <- csvDataFromArduino$timeInMilliseconds[ csvDataFromArdui
 # Remove elements larger than max of maxTimeInMilliseconds:
 csvDataFromArduino <- csvDataFromArduino[1:length(maxTimeInMilliseconds),]
 
-csvDataFromArduino$timeInMilliseconds <- csvDataFromArduino$timeInMilliseconds * 1000
 
-# convert in minutes
-#timeInMinutes <- format( as.POSIXct(Sys.Date())+csvDataFromArduino$timeInMilliseconds/1000, "%M:%S")
 
+# convert in minutes !!PROBLEM: x axis can't handle it
+#csvDataFromArduino$timeInMinutes <- format( as.POSIXct(Sys.Date())+csvDataFromArduino$timeInMilliseconds/1000, "%H:%M:%S")
+
+# convert milliseconds in date
+# csvDataFromArduino$timeInMinutes <- as_datetime(csvDataFromArduino$timeInMilliseconds/1000)
+#change year, month and day
+# year(csvDataFromArduino$timeInMinutes) <- 2018
+# month(csvDataFromArduino$timeInMinutes) <- 07
+# day(csvDataFromArduino$timeInMinutes) <- 04
+
+
+
+#___________________________________________________________________________________________________________________________
+
+#new columns: time difference and value difference
+csvDataFromArduino$td <- NA
+csvDataFromArduino$valueDifference <- NA
+
+# save the difference as pasitive value
+for (i in 1 : (length(csvDataFromArduino$timeInMilliseconds))) {
+  csvDataFromArduino$valueDifference[i] <-  abs(csvDataFromArduino$signalStrength[i + 1] - csvDataFromArduino$signalStrength[i] )
+}
+
+#start values
+i <- 1
+j <- 1
+k <- 1
+#start boolean 
+abnormal <- FALSE
+#two empty columns
+startTimeT1 <-NA
+endTimeT2 <- NA
+
+
+while (i < length(csvDataFromArduino$timeInMilliseconds)-1) {
+  if(  ( (csvDataFromArduino$valueDifference[i]  > 2) && (!abnormal)) ){
+    startTimeT1[j] <- c(csvDataFromArduino$timeInMilliseconds[i])
+    csvDataFromArduino$td[i] <- c(csvDataFromArduino$timeInMilliseconds[i])
+    abnormal <- TRUE
+    j <- j +1
+
+  }
+  else if((csvDataFromArduino$valueDifference[i]  <= 2 && abnormal && csvDataFromArduino$valueDifference[i+1] <= 2 && csvDataFromArduino$valueDifference[i+2] <= 2 ) ){
+    
+    endTimeT2[k] <- c(csvDataFromArduino$timeInMilliseconds[i])
+    csvDataFromArduino$td[i] <- c(csvDataFromArduino$timeInMilliseconds[i])
+    abnormal <- FALSE
+    k <- k +1
+  }
+  else{
+  }
+  i <- i +1  
+}
+
+results <- endTimeT2 - startTimeT1
+
+boxplot(results,ylim = c(200, 1000), yaxs = "i")
+
+boxplot(results, horizontal = TRUE, axes = FALSE, staplewex = 1)
+text(x=fivenum(results), labels =fivenum(results), y=1.25)
+text(x = boxplot.stats(results)$stats, labels = boxplot.stats(results)$stats, y = 1.25)
+title("Heisenbergstrasse time results(t2-t1) in milliseconds")
+
+
+#___________________________________________________________________________________________________________________________
 #plot 
-print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() + 
-        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time", y = "Strength")) 
+ggplot(csvDataFromArduino, aes(x=timeInMinutes, y=signalStrength)) + geom_line() +
+  labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time in hours", y = " Wi-Fi signal strength")
+
+
 
 #plot Car
-print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() +
-        geom_vline(xintercept = jsonCar, colour="red", linetype = 3) +
-        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time", y = "Strength"))
+print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + 
+        geom_line() +
+        #geom_vline(xintercept = jsonCar, colour="yellowgreen", linetype = 4) +
+        #geom_vline(xintercept = jsonBicycle, colour="blue", linetype = 3) +
+        #geom_vline(xintercept = jsonTruck, colour="green", linetype = 3) +
+        geom_vline(xintercept = startTimeT1, colour="red", linetype = 3) +
+        geom_vline(xintercept = endTimeT2, colour="blue", linetype = 3) +
+        #coord_cartesian(xlim = c(00:00:09, 00:00:12)) +
+        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", subtitle = "t1(start)= red line  and  t2(end)= blue line ", x = "Time", y = "Strength"))
+
+
 
 #plot Bicycle
 print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() +
@@ -101,8 +175,8 @@ listSignalStrength <- amplitudecsvDataFromArduino$signalStrength
 #first measurement - second measurement
 for (i in 1:(amplitudecsvDataFromArduinoLength)){
   nextValue <-listSignalStrength[i+1]
-  AmplitudeList[i]<- c(if (listSignalStrength[i] <= nextValue) {
-    listSignalStrength[i]-listSignalStrength[i+1]
+  AmplitudeList[i]<- c(if (listSignalStrength[i] == nextValue) {
+    0 #AmplitudeList[i-1]
   }else{
     (listSignalStrength[i]-listSignalStrength[i+1])
     #/2 it is not ne
@@ -113,20 +187,20 @@ for (i in 1:(amplitudecsvDataFromArduinoLength)){
 
 #----------------------------------------------------------------------
 
-vehicleFilterCar = 0
+vehicleFilterCar = 10
 filteredAmplitudeListCar <- NA
 
-vehicleFilterBicycle = 2
+vehicleFilterBicycle = 4
 filteredAmplitudeListBicycle <- NA
 
-vehicleFilterTruck = 111
+vehicleFilterTruck = 1111
 filteredAmplitudeListTruck <- NA
 
 #**********************************************************************
 # car
 
 for (i in 1: (amplitudecsvDataFromArduinoLength)){
-  filteredAmplitudeListCar[i]<- c(if (AmplitudeList[i] <= vehicleFilterCar || AmplitudeList[i] >= vehicleFilterTruck) {
+  filteredAmplitudeListCar[i]<- c(if (AmplitudeList[i] <= vehicleFilterCar ) {
     0
   }else{
     AmplitudeList[i]
@@ -140,23 +214,25 @@ videoCountingCars <- length(jsonCar[!is.na(jsonCar)])
 accuracyCars <- 100 / videoCountingCars * wifiCountingCars 
 
 #plot car
- print(ggplot(data=data.frame(x=amplitudecsvDataFromArduino$timeInMilliseconds[-length(amplitudecsvDataFromArduino$timeInMilliseconds) ] , y=AmplitudeList) ,aes(x=x, y=y)) + 
-        geom_histogram(stat = "identity") + 
+ print(ggplot(data=data.frame(x=amplitudecsvDataFromArduino$timeInMilliseconds[-length(amplitudecsvDataFromArduino$timeInMilliseconds) ] , y=filteredAmplitudeListCar) ,aes(x=x, y=y)) + 
+        #geom_histogram(stat = "identity") + 
+        #geom_boxplot() +
+        #coord_cartesian(xlim = c(155000, 190000)) +
+        geom_line() +
         geom_vline(xintercept = jsonCar, colour="red", linetype = 3) +
-        geom_vline(xintercept = jsonBicycle, colour="blue", linetype = 3) +
-        geom_vline(xintercept = jsonTruck, colour="green", linetype = 3) +
         labs(title = ( main = paste("counted cars with wifi:", wifiCountingCars, " counted cars from the video:", videoCountingCars )),
              subtitle = ( main = paste("accuracy", (round(accuracyCars)),"%" , "car=red, bicycle=blue, pedestrain=green" )),
              x = "time", y = "Strength:")  )
 
+ 
 
+ boxplot(AmplitudeList != 11)
+ plot(AmplitudeList, type = "s")
 
- counts <- table(mtcars$gear)
- barplot(AmplitudeList, main="Car Distribution", 
-         xlab="Number of Gears")
  
+b <-  AmplitudeList[which(AmplitudeList>1)]
  
- 
+boxplot(b,ylim = c(0, 12), yaxs = "i")
 
 #**********************************************************************
 # bicycle
@@ -221,6 +297,8 @@ print(ggplot(data=data.frame(x=csvDataFromArduino$timeInMilliseconds[-length(csv
 
 
 #sum(filteredAmplitudeList > 5 )
+
+
 
 
 
