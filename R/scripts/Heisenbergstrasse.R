@@ -82,33 +82,44 @@ i <- 1
 j <- 1
 k <- 1
 #start boolean 
-abnormal <- FALSE
+aberrant <- FALSE
 #two empty columns
 startTimeT1 <-NA
 endTimeT2 <- NA
+timeT <- NA
 
+t1 <-NA
+t2 <- NA
 
 while (i < length(csvDataFromArduino$timeInMilliseconds)-1) {
-  if(  ( (csvDataFromArduino$valueDifference[i]  > 2) && (!abnormal)) ){
+  if(  ( (csvDataFromArduino$valueDifference[i]  > 2) && (!aberrant)) ){
     startTimeT1[j] <- c(csvDataFromArduino$timeInMilliseconds[i])
     csvDataFromArduino$td[i] <- c(csvDataFromArduino$timeInMilliseconds[i])
-    abnormal <- TRUE
+    aberrant <- TRUE
+    t1[i] <- c(csvDataFromArduino$timeInMilliseconds[i])
+    timeT[i] <- paste0("= startTimeT", j  )
     j <- j +1
-
+ 
   }
-  else if((csvDataFromArduino$valueDifference[i]  <= 2 && abnormal && csvDataFromArduino$valueDifference[i+1] <= 2 && csvDataFromArduino$valueDifference[i+2] <= 2 ) ){
+  else if((csvDataFromArduino$valueDifference[i]  <= 2 && aberrant && csvDataFromArduino$valueDifference[i+1] <= 2 && csvDataFromArduino$valueDifference[i+2] <= 2 ) ){
     
     endTimeT2[k] <- c(csvDataFromArduino$timeInMilliseconds[i])
     csvDataFromArduino$td[i] <- c(csvDataFromArduino$timeInMilliseconds[i])
-    abnormal <- FALSE
+    aberrant <- FALSE
+    t2[i] <- c(csvDataFromArduino$timeInMilliseconds[i])
+    timeT[i] <- paste0("endTimeT", k, " =")
     k <- k +1
   }
   else{
   }
   i <- i +1  
+  t1[i] <- 0
+  t2[i] <- 0
+  timeT[i] <- NA
 }
 
 results <- endTimeT2 - startTimeT1
+resultsT2MinusT1 <- t2 -t1
 
 boxplot(results,ylim = c(200, 1000), yaxs = "i")
 
@@ -128,13 +139,13 @@ ggplot(csvDataFromArduino, aes(x=timeInMinutes, y=signalStrength)) + geom_line()
 #plot Car
 print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + 
         geom_line() +
-        #geom_vline(xintercept = jsonCar, colour="yellowgreen", linetype = 4) +
-        #geom_vline(xintercept = jsonBicycle, colour="blue", linetype = 3) +
-        #geom_vline(xintercept = jsonTruck, colour="green", linetype = 3) +
+        geom_vline(xintercept = jsonCar, colour="yellowgreen", linetype = 4) +
+        geom_vline(xintercept = jsonBicycle, colour="black", linetype = 2) +
+      #  geom_vline(xintercept = jsonTruck, colour="green", linetype = 3) +
         geom_vline(xintercept = startTimeT1, colour="red", linetype = 3) +
         geom_vline(xintercept = endTimeT2, colour="blue", linetype = 3) +
-        #coord_cartesian(xlim = c(00:00:09, 00:00:12)) +
-        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", subtitle = "t1(start)= red line  and  t2(end)= blue line ", x = "Time", y = "Strength"))
+        coord_cartesian(xlim = c(182371, 183734)) +
+        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", subtitle = "t1(start)= red line  and  t2(end)= blue line; bicycle=black ", x = "Time", y = "Strength"))
 
 
 
@@ -179,11 +190,12 @@ for (i in 1:(amplitudecsvDataFromArduinoLength)){
     0 #AmplitudeList[i-1]
   }else{
     (listSignalStrength[i]-listSignalStrength[i+1])
-    #/2 it is not ne
+    #/2 it is not necessary
     #https://www.inhaltsangabe.info/s-mathematik/die-amplitude-berechnen-bestimmen-definition-formel
     #(listSignalStrength[i]-listSignalStrength[i+1]) / 2
   })
 }
+
 
 #----------------------------------------------------------------------
 
@@ -295,16 +307,309 @@ print(ggplot(data=data.frame(x=csvDataFromArduino$timeInMilliseconds[-length(csv
 ############################################################################################################################
 
 
-
 #sum(filteredAmplitudeList > 5 )
-
-
-
-
-
 
 twoY <- paste(csvDataFromArduino$signalStrength, filteredAmplitudeListCar)
 
 
+############################################################################################################################
 
 
+
+counterCar <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonCar))) {
+    if(startTimeT1[i] <= jsonCar[x] && endTimeT2[i] >= jsonCar[x] ){
+      counterCar <- counterCar + 1
+    }else{
+    }
+  }
+}
+
+############################################################################################################################
+
+
+counterBicycle <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonBicycle))) {
+    if(startTimeT1[i] <= jsonBicycle[x] && endTimeT2[i] >= jsonBicycle[x] ){
+      counterBicycle <- counterBicycle + 1
+    }else{
+    }
+  }
+}
+
+############################################################################################################################
+
+
+counterTruck <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonTruck))) {
+    if(startTimeT1[i] <= jsonTruck[x] && endTimeT2[i] >= jsonTruck[x] ){
+      counterTruck <- counterTruck + 1
+    }else{
+    }
+  }
+}
+
+############################################################################################################################
+############################################################################################################################
+resultTable <- data.frame(t1, timeT, t2, resultsT2MinusT1, AmplitudeList,  amplitudecsvDataFromArduino$timeInMilliseconds[-length(amplitudecsvDataFromArduino$timeInMilliseconds)] )
+
+#change head name
+colnames(resultTable) <- c("t1", "timeT", "t2", "resultsT2MinusT1", "AmplitudeList", "timeInMilliseconds")
+
+newResultTable <-NA
+newResultTable <- data.frame(t1 = numeric(), timeT = factor(), t2 = numeric(), resultsT2MinusT1 = numeric(), AmplitudeList = numeric(), filteredAmplitudeListCar= numeric(), filteredAmplitudeListBicycle= numeric(),timeInMilliseconds= integer())
+ResultTableT1T2WidthAmplitude <- data.frame(t1 = numeric(),  t2 = numeric(), resultsT2MinusT1 = numeric(), AmplitudeMaxValue= integer())
+q <- 1
+
+#results only from startTime until endTime 
+for (i in 2: (length(resultTable$timeInMilliseconds))) {
+  if(resultTable$t1[i] > 1){
+    newResultTable[q, ] <- resultTable[i, ]
+    q <- q +1
+    while (resultTable$t2[i] < 1) {
+      i <- i + 1
+      newResultTable[q, ] <- resultTable[i, ]
+      q <- q +1
+    }
+
+  }else{
+   
+  }
+}
+
+
+
+
+tempList <- c()
+temp <- 0
+q <- 1
+j <- 1
+maxValue<- 0
+for (i in 1: (length(newResultTable$timeInMilliseconds))) {
+  if(newResultTable$t1[i] > 1){
+    ResultTableT1T2WidthAmplitude[q, 1] <- newResultTable[i ,1]
+    tempList[j] <- newResultTable[i, 5]
+    while (newResultTable$t2[i] < 1) {
+      i <- i + 1
+      j <- j + 1
+     tempList[j] <-  newResultTable[i, 5]
+      
+      if(newResultTable$t2[i] > 1){
+        ResultTableT1T2WidthAmplitude[q, 2] <- newResultTable[i,3]
+        
+        for (x in 1 : length(tempList)) {
+          if(tempList[x] >= 0 ){
+            temp <- temp + tempList[x]
+            if (x == length(tempList) && maxValue < temp){
+              maxValue <- temp
+              temp <- 0
+            }
+          }else if(maxValue < temp || tempList[x] < 0  ){
+            if (maxValue < temp){
+              maxValue <- temp
+            }
+            temp <- 0
+          }
+        }
+        
+        ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[q] <-  maxValue
+       # ResultTableT1T2WidthAmplitude$AmplitudeListAll[q] <-  toString(tempList)
+        ResultTableT1T2WidthAmplitude$resultsT2MinusT1[q] <- ResultTableT1T2WidthAmplitude[q, 2] - ResultTableT1T2WidthAmplitude[q, 1]
+      }
+      
+    }
+    temp <- 0
+    tempList <- c()
+    maxValue <- 0
+    j <- 1
+    q <- q +1
+  }else{
+    
+  }
+}
+
+
+############################################################################################################################
+#test to find max value **DELETE**
+
+l1 <- c(3, -4, 2, 2, 8, -8, 7, -5, -4, 9, -7, -2)
+max<- 0
+temp <- 0
+for (x in 1 : length(l1)) {
+  if(l1[x] >= 0 ){
+    temp <- temp + l1[x]
+    if (x == length(l1) && max < temp){
+      max <- temp
+      temp <- 0
+    }
+  }else if(max < temp || l1[x] < 0  ){
+    if (max < temp){
+      max <- temp
+    }
+    temp <- 0
+  }
+}
+
+
+############################################################################################################################
+
+
+summary(ResultTableT1T2WidthAmplitude$resultsT2MinusT1)
+boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "Width resultsT2MinusT1")
+
+#cars counted with width
+ sum(ResultTableT1T2WidthAmplitude$resultsT2MinusT1 >= 611)
+#[1] 176
+ 
+ #bicycles counted with width
+ sum(ResultTableT1T2WidthAmplitude$resultsT2MinusT1 < 611)
+#[1] 510
+ 
+ #**********************************************************
+
+ summary(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue)
+ boxplotResultsFunction (ResultTableT1T2WidthAmplitude$AmplitudeMaxValue, "AmplitudeMaxValue")
+ 
+ #cars counted with amplitude
+ sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue >= 14)
+ #[1] 177
+ 
+ #bicycles counted with amplitude 
+ sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue < 14) - sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue  < 4)
+ #[1] 371
+############################################################################################################################
+
+ 
+ boxplotResultsFunction<-function(boxplotResults, headName ){
+   print (boxplot(boxplotResults, horizontal = TRUE, axes = FALSE, staplewex = 1))
+   print(text(x=fivenum(boxplotResults), labels =fivenum(boxplotResults), y=1.25))
+   print(text(x = boxplot.stats(boxplotResults)$stats, labels = boxplot.stats(boxplotResults)$stats, y = 1.25))
+   print (title(paste("Steinfurter Straße", headName )))
+ }
+ ############################################################################################################################ 
+ ############################################################################################################################
+ # **WIDTH Table**
+ resultTableWidth <- ResultTableT1T2WidthAmplitude[ , 1:3]
+ resultTableWidth$vehicle <-NA
+ for (i in 1:length(resultTableWidth$resultsT2MinusT1)) {
+   if  (resultTableWidth$resultsT2MinusT1[i] >= 611 ){
+     resultTableWidth$vehicle[i] <- "car"
+   }
+   if (ResultTableT1T2WidthAmplitude$resultsT2MinusT1[i] < 611){
+     resultTableWidth$vehicle[i] <- "bicycle"
+   }
+ }
+ 
+ 
+ ############################################################################################################################
+ #A = Actual number of cars overlapping with P  **WIDTH**
+ 
+ counterCar <- 0
+ 
+ for (i in 1 : (length(resultTableWidth$t1))) {
+   for (x in 1 : (length(jsonCar))) {
+     if(resultTableWidth$t1[i] <= jsonCar[x] && resultTableWidth$t2[i] >= jsonCar[x] && resultTableWidth$vehicle[i] == "car" ){
+       counterCar <- counterCar + 1
+     }else{
+     }
+   }
+ }
+ print(paste("cars:", counterCar))
+ ############################################################################################################################
+ 
+ 
+ counterBicycle <- 0
+ 
+ for (i in 1 : (length(resultTableWidth$t1))) {
+   for (x in 1 : (length(jsonBicycle))) {
+     if(resultTableWidth$t1[i] <= jsonBicycle[x] && resultTableWidth$t2[i] >= jsonBicycle[x] && resultTableWidth$vehicle[i] == "bicycle" ){
+       counterBicycle <- counterBicycle + 1
+     }else{
+     }
+   }
+ }
+ print(paste("bicycles:", counterBicycle))
+ 
+
+ 
+ ############################################################################################################################
+ ############################################################################################################################
+ # **AMPLITUDE Table**
+ resultTableAmplitude <- ResultTableT1T2WidthAmplitude[ , 1:2 ]
+ resultTableAmplitude$AmplitudeMaxValue <- ResultTableT1T2WidthAmplitude[ , 4 ]
+ resultTableAmplitude$vehicle <-NA
+ for (i in 1:length(resultTableAmplitude$AmplitudeMaxValue)) {
+   if  (resultTableAmplitude$AmplitudeMaxValue[i] >= 14  ){
+     resultTableAmplitude$vehicle[i] <- "car"
+   }
+   if (ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] > 4 && ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] < 14){
+     resultTableAmplitude$vehicle[i] <- "bicycle"
+   }
+ }
+ 
+ resultTableAmplitude <- na.omit(resultTableAmplitude)
+ 
+ ############################################################################################################################
+ #A = Actual number of cars overlapping with P  **AMPLITUDE**
+ 
+ counterCar <- 0
+ 
+ for (i in 1 : length(resultTableAmplitude$t1)) {
+   for (x in 1 : length(jsonCar)) {
+     if(resultTableAmplitude$t1[i] <= jsonCar[x] && resultTableAmplitude$t2[i] >= jsonCar[x] && resultTableAmplitude$vehicle[i] == "car" ){
+       counterCar <- counterCar + 1
+     }else{
+     }
+   }
+ }
+ print(paste("cars:", counterCar))
+ ############################################################################################################################
+ 
+ 
+ counterBicycle <- 0
+ 
+ for (i in 1 : (length(resultTableAmplitude$t1))) {
+   for (x in 1 : (length(jsonBicycle))) {
+     if(resultTableAmplitude$t1[i] <= jsonBicycle[x] && resultTableAmplitude$t2[i] >= jsonBicycle[x] && resultTableAmplitude$vehicle[i] == "bicycle" ){
+       counterBicycle <- counterBicycle + 1
+     }else{
+     }
+   }
+ }
+ print(paste("bicycles:", counterBicycle))
+ ############################################################################################################################
+
+ 
+ ############################################################################################################################
+ V = 467
+ P = 371
+ A = 47
+ 
+ 
+ #precision <- A / P
+ print(precision <- A / P )
+ 
+ #Recall
+ print(recall <- A / V ) 
+ 
+ #F
+ print(f <- 2 * ((precision * recall) / (precision + recall) ))
+ 
+ 
+ ############################################################################################################################
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
