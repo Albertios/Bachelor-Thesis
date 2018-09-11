@@ -145,7 +145,7 @@ print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) +
         geom_vline(xintercept = startTimeT1, colour="red", linetype = 3) +
         geom_vline(xintercept = endTimeT2, colour="blue", linetype = 3) +
         coord_cartesian(xlim = c(182371, 183734)) +
-        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", subtitle = "t1(start)= red line  and  t2(end)= blue line; bicycle=black ", x = "Time", y = "Strength"))
+        labs(title="Heisenbergstrasse 4/7/2018 peak width:", subtitle = "horizontal lines: startTimeT1= red line; bicycle=black line; endTimeT2= blue line; ", x = "Time in milliseconds", y = "Strength in dB"))
 
 
 
@@ -436,32 +436,12 @@ for (i in 1: (length(newResultTable$timeInMilliseconds))) {
 
 
 ############################################################################################################################
-#test to find max value **DELETE**
-
-l1 <- c(3, -4, 2, 2, 8, -8, 7, -5, -4, 9, -7, -2)
-max<- 0
-temp <- 0
-for (x in 1 : length(l1)) {
-  if(l1[x] >= 0 ){
-    temp <- temp + l1[x]
-    if (x == length(l1) && max < temp){
-      max <- temp
-      temp <- 0
-    }
-  }else if(max < temp || l1[x] < 0  ){
-    if (max < temp){
-      max <- temp
-    }
-    temp <- 0
-  }
-}
-
 
 ############################################################################################################################
 
 
 summary(ResultTableT1T2WidthAmplitude$resultsT2MinusT1)
-boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "Width resultsT2MinusT1")
+boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "boxplot width results in milliseconds")
 
 #cars counted with width
  sum(ResultTableT1T2WidthAmplitude$resultsT2MinusT1 >= 611)
@@ -490,7 +470,7 @@ boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "Width re
    print (boxplot(boxplotResults, horizontal = TRUE, axes = FALSE, staplewex = 1))
    print(text(x=fivenum(boxplotResults), labels =fivenum(boxplotResults), y=1.25))
    print(text(x = boxplot.stats(boxplotResults)$stats, labels = boxplot.stats(boxplotResults)$stats, y = 1.25))
-   print (title(paste("Steinfurter Straße", headName )))
+   print (title(paste("Heisenbergstrasse", headName )))
  }
  ############################################################################################################################ 
  ############################################################################################################################

@@ -241,5 +241,45 @@ boxplotResultsFunction<-function(boxplotResults, headName ){
   print(text(x = boxplot.stats(boxplotResults)$stats, labels = boxplot.stats(boxplotResults)$stats, y = 1.25))
   print (title(paste("Steinfurter Straße", headName )))
 }
+############################################################################################################################
+############################################################################################################################
+# A = Actual number of cars overlapping with P
+
+counterCar <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonCar))) {
+    if(startTimeT1[i] <= jsonCar[x] && endTimeT2[i] >= jsonCar[x] ){
+      counterCar <- counterCar + 1
+    }else{
+    }
+  }
+}
+
+############################################################################################################################
 
 
+counterBicycle <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonBicycle))) {
+    if(startTimeT1[i] <= jsonBicycle[x] && endTimeT2[i] >= jsonBicycle[x] ){
+      counterBicycle <- counterBicycle + 1
+    }else{
+    }
+  }
+}
+
+############################################################################################################################
+
+
+counterTruck <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonTruck))) {
+    if(startTimeT1[i] <= jsonTruck[x] && endTimeT2[i] >= jsonTruck[x] ){
+      counterTruck <- counterTruck + 1
+    }else{
+    }
+  }
+}
