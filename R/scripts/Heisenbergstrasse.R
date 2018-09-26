@@ -398,7 +398,7 @@ for (i in 1: (length(newResultTable$timeInMilliseconds))) {
     while (newResultTable$t2[i] < 1) {
       i <- i + 1
       j <- j + 1
-     tempList[j] <-  newResultTable[i, 5]
+      tempList[j] <-  newResultTable[i, 5]
       
       if(newResultTable$t2[i] > 1){
         ResultTableT1T2WidthAmplitude[q, 2] <- newResultTable[i,3]
@@ -419,7 +419,7 @@ for (i in 1: (length(newResultTable$timeInMilliseconds))) {
         }
         
         ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[q] <-  maxValue
-       # ResultTableT1T2WidthAmplitude$AmplitudeListAll[q] <-  toString(tempList)
+        # ResultTableT1T2WidthAmplitude$AmplitudeListAll[q] <-  toString(tempList)
         ResultTableT1T2WidthAmplitude$resultsT2MinusT1[q] <- ResultTableT1T2WidthAmplitude[q, 2] - ResultTableT1T2WidthAmplitude[q, 1]
       }
       
@@ -437,6 +437,12 @@ for (i in 1: (length(newResultTable$timeInMilliseconds))) {
 
 ############################################################################################################################
 
+boxplotResultsFunction<-function(boxplotResults, headName ){
+  print (boxplot(boxplotResults, horizontal = TRUE, axes = FALSE, staplewex = 1))
+  print(text(x=fivenum(boxplotResults), labels =fivenum(boxplotResults), y=1.25))
+  print(text(x = boxplot.stats(boxplotResults)$stats, labels = boxplot.stats(boxplotResults)$stats, y = 1.25))
+  print (title(paste("Heisenbergstrasse", headName )))
+}
 ############################################################################################################################
 
 
@@ -466,13 +472,46 @@ boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "boxplot 
 ############################################################################################################################
 
  
- boxplotResultsFunction<-function(boxplotResults, headName ){
-   print (boxplot(boxplotResults, horizontal = TRUE, axes = FALSE, staplewex = 1))
-   print(text(x=fivenum(boxplotResults), labels =fivenum(boxplotResults), y=1.25))
-   print(text(x = boxplot.stats(boxplotResults)$stats, labels = boxplot.stats(boxplotResults)$stats, y = 1.25))
-   print (title(paste("Heisenbergstrasse", headName )))
- }
+
  ############################################################################################################################ 
+ #width method overlapping with amplitude method
+ 
+ ResultTableT1T2WidthAmplitude$vehicleOverlapping <-NA
+ counterBicycle <- 0
+ counterCar <- 0
+ for (i in 1:length(ResultTableT1T2WidthAmplitude$resultsT2MinusT1)) {
+   if  (ResultTableT1T2WidthAmplitude$resultsT2MinusT1[i] >= 611 &&  ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] >= 14 ){
+     ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] <- "car"
+     counterCar <- counterCar + 1
+   }
+   if (ResultTableT1T2WidthAmplitude$resultsT2MinusT1[i] < 611 &&  4 < ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] && ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] < 14){
+     ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] <- "bicycle"
+     counterBicycle <- counterBicycle + 1
+   }
+ }
+ 
+ print(paste("cars:", counterCar))
+ #[1] "cars: 104"
+ print(paste("bicycles:", counterBicycle))
+ #[1] "bicycles: 252"
+ 
+ #*****************************************************************************************************************************
+ 
+ #delete NA rows
+ ResultTableT1T2WidthAmplitude<-ResultTableT1T2WidthAmplitude[complete.cases(ResultTableT1T2WidthAmplitude), ]
+ 
+ counterCar <- 0
+ 
+ for (i in 1 : (length(ResultTableT1T2WidthAmplitude$t1))) {
+   for (x in 1 : (length(jsonCar))) {
+     if(ResultTableT1T2WidthAmplitude$t1[i] <= jsonCar[x] && ResultTableT1T2WidthAmplitude$t2[i] >= jsonCar[x] && ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] == "car" ){
+       counterCar <- counterCar + 1
+     }else{
+     }
+   }
+ }
+ print(paste("cars:", counterCar))
+ 
  ############################################################################################################################
  # **WIDTH Table**
  resultTableWidth <- ResultTableT1T2WidthAmplitude[ , 1:3]
@@ -567,9 +606,9 @@ boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "boxplot 
 
  
  ############################################################################################################################
- V = 467
- P = 371
- A = 47
+ V = 467 
+ P = 252 
+ A = 24
  
  
  #precision <- A / P
@@ -583,6 +622,8 @@ boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "boxplot 
  
  
  ############################################################################################################################
+ 
+ 
  
  
  

@@ -137,6 +137,15 @@ print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + 
 print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() +
         geom_vline(xintercept = jsonTruck, colour="red", linetype = 3) +
         labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time", y = "Strength"))
+
+#plot twoVehicle
+print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() +
+        geom_vline(xintercept = jsonTwoVehicles, colour="red", linetype = 1) +
+        geom_vline(xintercept = startTimeT1, colour="black", linetype = 3) +
+        geom_vline(xintercept = endTimeT2, colour="blue", linetype = 3) +
+        coord_cartesian(xlim = c(4976526.2, 4979526.2)) +
+        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time", y = "Strength"))
+
 #___________________________________________________________________________________________________________________________
 
 #get data where strength is under -65
@@ -165,7 +174,7 @@ listSignalStrength <- amplitudecsvDataFromArduino$signalStrength
 #first measurement value - second measurement value
 for (i in 1:(amplitudecsvDataFromArduinoLength)){
   nextValue <-listSignalStrength[i+1]
-  AmplitudeList[i]<- c(if (listSignalStrength[i] <= nextValue) {
+  AmplitudeList[i]<- c(if (listSignalStrength[i] == nextValue) {
     0
   }else{
     (listSignalStrength[i]-listSignalStrength[i+1]) 
@@ -389,7 +398,12 @@ for (i in 1: (length(newResultTable$timeInMilliseconds))) {
 
 
 ############################################################################################################################
-
+boxplotResultsFunction<-function(boxplotResults, headName ){
+  print (boxplot(boxplotResults, horizontal = TRUE, axes = FALSE, staplewex = 1))
+  print(text(x=fivenum(boxplotResults), labels =fivenum(boxplotResults), y=1.25))
+  print(text(x = boxplot.stats(boxplotResults)$stats, labels = boxplot.stats(boxplotResults)$stats, y = 1.25))
+  print (title(paste("Steinfurter Straße", headName )))
+}
 
 ############################################################################################################################
 
@@ -412,25 +426,75 @@ summary(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue)
 boxplotResultsFunction (ResultTableT1T2WidthAmplitude$AmplitudeMaxValue, "AmplitudeMaxValue")
 
 #cars counted with amplitude
-sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue > 6) - sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue > 43)
-#[1] 842
+sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue > 5) - sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue > 14)
+#[1] 842 false
+#[1] 597
 
 #bicycles counted with amplitude
-sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue == 6)
-#[1] 31
+sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue == 5)
+#[1] 31 false
+#[1] 67
 
 #trucks counted with amplitude boxplot: inner fence / Max
-sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue > 43)
-#[1] 45
+sum(ResultTableT1T2WidthAmplitude$AmplitudeMaxValue > 14)
+#[1] 45 false
+#[1] 258
+############################################################################################################################
+############################################################################################################################
+#width method overlapping with amplitude method
+
+ResultTableT1T2WidthAmplitude$vehicleOverlapping <-NA
+counterBicycle <- 0
+counterCar <- 0
+counterTruck <- 0
+counter <- 0
+for (i in 1:length(ResultTableT1T2WidthAmplitude$resultsT2MinusT1)) {
+  if  (ResultTableT1T2WidthAmplitude$resultsT2MinusT1[i] >= 357.5 && ResultTableT1T2WidthAmplitude$resultsT2MinusT1[i] <= 1849
+       &&  ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] > 5 &&  ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] <= 14){
+    ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] <- "car"
+    counterCar <- counterCar + 1
+    counter <- counter+1
+  }
+  if (ResultTableT1T2WidthAmplitude$resultsT2MinusT1[i] < 357.5 && ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] == 5){
+    ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] <- "bicycle"
+    counterBicycle <- counterBicycle + 1
+    counter <- counter+1
+  }
+  if (ResultTableT1T2WidthAmplitude$resultsT2MinusT1[i] > 1849 && ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] > 14 ){
+    ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] <- "truck"
+    counterTruck <- counterTruck + 1
+    counter <- counter+1
+  }
+}
+
+print(paste("cars:", counterCar))
+#[1] "cars: 495"
+print(paste("bicycles:", counterBicycle))
+#[1] "bicycles: 29"
+print(paste("truck:", counterTruck))
+#[1] "truck: 16"
+
+#*****************************************************************************************************************************
+#delete NA rows
+ResultTableT1T2WidthAmplitude<-ResultTableT1T2WidthAmplitude[complete.cases(ResultTableT1T2WidthAmplitude), ]
+
+counterCar <- 0
+
+for (i in 1 : (length(ResultTableT1T2WidthAmplitude$vehicleOverlapping))) {
+  for (x in 1 : (length(jsonBicycle))) {
+    if(ResultTableT1T2WidthAmplitude$t1[i] <= jsonBicycle[x] && ResultTableT1T2WidthAmplitude$t2[i] >= jsonBicycle[x] && ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] == "bicycle" ){
+      counterCar <- counterCar + 1
+    }else{
+    }
+  }
+}
+print(paste("bicycle:", counterCar))
+
+
+
+
 ############################################################################################################################
 
-boxplotResultsFunction<-function(boxplotResults, headName ){
-print (boxplot(boxplotResults, horizontal = TRUE, axes = FALSE, staplewex = 1))
-  print(text(x=fivenum(boxplotResults), labels =fivenum(boxplotResults), y=1.25))
-  print(text(x = boxplot.stats(boxplotResults)$stats, labels = boxplot.stats(boxplotResults)$stats, y = 1.25))
-print (title(paste("Steinfurter Straße", headName )))
-}
-############################################################################################################################
 # **WIDTH Table**
 resultTableWidth <- ResultTableT1T2WidthAmplitude[ , 1:3]
 resultTableWidth$vehicle <-NA
@@ -497,13 +561,13 @@ resultTableAmplitude <- ResultTableT1T2WidthAmplitude[ , 1:2 ]
 resultTableAmplitude$AmplitudeMaxValue <- ResultTableT1T2WidthAmplitude[ , 4 ]
 resultTableAmplitude$vehicle <-NA
 for (i in 1:length(resultTableAmplitude$AmplitudeMaxValue)) {
-  if  (resultTableAmplitude$AmplitudeMaxValue[i] > 6 && resultTableAmplitude$AmplitudeMaxValue[i] <= 43 ){
+  if  (resultTableAmplitude$AmplitudeMaxValue[i] > 5 && resultTableAmplitude$AmplitudeMaxValue[i] <= 14 ){
     resultTableAmplitude$vehicle[i] <- "car"
   }
-  if (ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] == 6){
+  if (ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] == 5){
     resultTableAmplitude$vehicle[i] <- "bicycle"
   }
-  if (ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] > 43){
+  if (ResultTableT1T2WidthAmplitude$AmplitudeMaxValue[i] > 14){
     resultTableAmplitude$vehicle[i] <- "truck"
   }
 }
@@ -554,10 +618,9 @@ for (i in 1 : (length(resultTableAmplitude$t1))) {
 print(paste("trucks:", counterTruck))
 
 ############################################################################################################################
-V = 1000
-P = 842
-A = 451
-
+V = 45 
+P = 16 
+A = 7
 
 #precision <- A / P
 print(precision <- A / P )
