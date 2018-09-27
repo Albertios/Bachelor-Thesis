@@ -10,6 +10,15 @@ library(lubridate)
 setwd("/Users/Alf/Documents/GitHub/Bachelor/R/")
 # load data
 
+#_________________________(CSVdata, jsonCar, jsonBicycle, jsonTruck, videoTimeWhenArduinoSwitchOn, vehicleFilter)_________________________________________________________________
+# bachelor <- wifiAnalysis("./4_July_Heisenbergstrasse.csv","./json/carTime4th7July.json", "./json/bicycleTime4th7July.json","./json/truckTime4th7July.json", 589.726292, 5) 
+#___________________________________________________________________________________________________________________________________________________
+
+
+#test123 <- function(CSVdata, jsonCar, jsonBicycle, jsonTruck, videoTimeWhenArduinoSwitchOn, vehicleFilter){
+
+#csvDataFromArduino <- read.table(file = CSVdata, sep = ",")
+
 csvDataFromArduino <- read.table(file = "./csv/4_July_Heisenbergstrasse.csv", sep = ",")
 
 #change head name of the first & second column
@@ -42,6 +51,21 @@ maxTimeInMilliseconds <- csvDataFromArduino$timeInMilliseconds[ csvDataFromArdui
 
 # Remove elements larger than max of maxTimeInMilliseconds:
 csvDataFromArduino <- csvDataFromArduino[1:length(maxTimeInMilliseconds),]
+
+
+
+# convert in minutes !!PROBLEM: x axis can't handle it
+#csvDataFromArduino$timeInMinutes <- format( as.POSIXct(Sys.Date())+csvDataFromArduino$timeInMilliseconds/1000, "%H:%M:%S")
+
+# convert milliseconds in date
+# csvDataFromArduino$timeInMinutes <- as_datetime(csvDataFromArduino$timeInMilliseconds/1000)
+#change year, month and day
+# year(csvDataFromArduino$timeInMinutes) <- 2018
+# month(csvDataFromArduino$timeInMinutes) <- 07
+# day(csvDataFromArduino$timeInMinutes) <- 04
+
+
+
 #___________________________________________________________________________________________________________________________
 
 #new columns: time difference and value difference
@@ -106,7 +130,9 @@ title("Heisenbergstrasse time results(t2-t1) in milliseconds")
 
 
 #___________________________________________________________________________________________________________________________
-
+#plot 
+ggplot(csvDataFromArduino, aes(x=timeInMinutes, y=signalStrength)) + geom_line() +
+  labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time in hours", y = " Wi-Fi signal strength")
 
 
 
@@ -118,13 +144,29 @@ print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) +
       #  geom_vline(xintercept = jsonTruck, colour="green", linetype = 3) +
         geom_vline(xintercept = startTimeT1, colour="red", linetype = 3) +
         geom_vline(xintercept = endTimeT2, colour="blue", linetype = 3) +
-        coord_cartesian(xlim = c(10659, 11395)) +
+        coord_cartesian(xlim = c(182371, 183734)) +
         labs(title="Heisenbergstrasse 4/7/2018 peak width:", subtitle = "horizontal lines: startTimeT1= red line; bicycle=black line; endTimeT2= blue line; ", x = "Time in milliseconds", y = "Strength in dB"))
 
 
 
+#plot Bicycle
+print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() +
+        geom_vline(xintercept = jsonBicycle, colour="red", linetype = 3) +
+        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time", y = "Strength"))
+
+#plot Truck
+print(ggplot(csvDataFromArduino, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() +
+        geom_vline(xintercept = jsonTruck, colour="red", linetype = 3) +
+        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time", y = "Strength"))
 #___________________________________________________________________________________________________________________________
 
+#get data where strength is under -65
+subsetcsvDataFromArduinoGreaterThanMinus65 <- csvDataFromArduino[which(csvDataFromArduino[,2]< -65), ]
+
+#plot
+print(ggplot(subsetcsvDataFromArduinoGreaterThanMinus65, aes(x=timeInMilliseconds, y=signalStrength)) + geom_line() +
+        geom_vline(xintercept = jsonCar, colour="red", linetype = 3) +
+        labs(title="Heisenbergstrasse 4/7/2018 WI-Fi Strengths:", x = "Time", y = "Strength") )
 
 #___________________________________________________________________________________________________________________________
 
@@ -157,7 +199,161 @@ for (i in 1:(amplitudecsvDataFromArduinoLength)){
 
 #----------------------------------------------------------------------
 
+vehicleFilterCar = 10
+filteredAmplitudeListCar <- NA
 
+vehicleFilterBicycle = 4
+filteredAmplitudeListBicycle <- NA
+
+vehicleFilterTruck = 1111
+filteredAmplitudeListTruck <- NA
+
+#**********************************************************************
+# car
+
+for (i in 1: (amplitudecsvDataFromArduinoLength)){
+  filteredAmplitudeListCar[i]<- c(if (AmplitudeList[i] <= vehicleFilterCar ) {
+    0
+  }else{
+    AmplitudeList[i]
+  })
+}
+return(filteredAmplitudeListCar)
+
+wifiCountingCars <- sum(filteredAmplitudeListCar > 1 )
+videoCountingCars <- length(jsonCar[!is.na(jsonCar)])
+
+accuracyCars <- 100 / videoCountingCars * wifiCountingCars 
+
+#plot car
+ print(ggplot(data=data.frame(x=amplitudecsvDataFromArduino$timeInMilliseconds[-length(amplitudecsvDataFromArduino$timeInMilliseconds) ] , y=filteredAmplitudeListCar) ,aes(x=x, y=y)) + 
+        #geom_histogram(stat = "identity") + 
+        #geom_boxplot() +
+        #coord_cartesian(xlim = c(155000, 190000)) +
+        geom_line() +
+        geom_vline(xintercept = jsonCar, colour="red", linetype = 3) +
+        labs(title = ( main = paste("counted cars with wifi:", wifiCountingCars, " counted cars from the video:", videoCountingCars )),
+             subtitle = ( main = paste("accuracy", (round(accuracyCars)),"%" , "car=red, bicycle=blue, pedestrain=green" )),
+             x = "time", y = "Strength:")  )
+
+ 
+
+ boxplot(AmplitudeList != 11)
+ plot(AmplitudeList, type = "s")
+
+ 
+b <-  AmplitudeList[which(AmplitudeList>1)]
+ 
+boxplot(b,ylim = c(0, 12), yaxs = "i")
+
+#**********************************************************************
+# bicycle
+
+for (i in 1: (amplitudecsvDataFromArduinoLength)){
+  filteredAmplitudeListBicycle[i]<- c(if (AmplitudeList[i] <= vehicleFilterBicycle || AmplitudeList[i] > vehicleFilterCar ) {
+    0
+  }else{
+    AmplitudeList[i]
+  })
+}
+return(filteredAmplitudeListBicycle)
+
+wifiCountingBicycles <- sum(filteredAmplitudeListBicycle > 1 )
+videoCountingBicycles <- length(jsonBicycle)
+
+accuracyBicycles <- 100 / videoCountingBicycles * wifiCountingBicycles 
+
+#plot bicycle
+print(ggplot(data=data.frame(x=csvDataFromArduino$timeInMilliseconds[-length(csvDataFromArduino$timeInMilliseconds) ] , y=filteredAmplitudeListBicycle) ,aes(x=x, y=y)) +  geom_line() +
+        geom_vline(xintercept = jsonBicycle, colour="red", linetype = 3) +
+        labs(title = ( main = paste("counted bicycles with wifi:", wifiCountingBicycles, " counted bicycles from the video:", videoCountingBicycles )),
+             subtitle = ( main = paste("accuracy", (round(accuracyBicycles)),"%" )),
+             x = "time", y = "Strength:")  )
+
+
+#**********************************************************************
+# truck
+
+for (i in 1: (amplitudecsvDataFromArduinoLength)){
+  filteredAmplitudeListTruck[i]<- c(if (AmplitudeList[i] < vehicleFilterTruck) {
+    0
+  }else{
+    AmplitudeList[i]
+  })
+}
+return(filteredAmplitudeListTruck)
+
+wifiCountingTrucks <- sum(filteredAmplitudeListTruck > 1 )
+videoCountingTrucks <- length(jsonTruck[!is.na(jsonTruck)])
+
+accuracyTrucks <- 100 / videoCountingTrucks * wifiCountingTrucks
+
+#plot truck
+print(ggplot(data=data.frame(x=csvDataFromArduino$timeInMilliseconds[-length(csvDataFromArduino$timeInMilliseconds) ] , y=filteredAmplitudeListTruck) ,aes(x=x, y=y)) +
+        geom_line() + 
+        geom_vline(xintercept = jsonTruck, colour="red", linetype = 3) +
+        labs(title = ( main = paste("counted trucks/buses with wifi:", wifiCountingTrucks, " counted trucks/buses from the video:", videoCountingTrucks )),
+             subtitle = ( main = paste("accuracy", (round(accuracyTrucks)),"%" )),
+             x = "time", y = "Strength:")  )
+
+#} # function end
+
+############################################################################################################################
+#ToDo
+
+# time axis
+# legend
+
+############################################################################################################################
+
+
+#sum(filteredAmplitudeList > 5 )
+
+twoY <- paste(csvDataFromArduino$signalStrength, filteredAmplitudeListCar)
+
+
+############################################################################################################################
+
+
+
+counterCar <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonCar))) {
+    if(startTimeT1[i] <= jsonCar[x] && endTimeT2[i] >= jsonCar[x] ){
+      counterCar <- counterCar + 1
+    }else{
+    }
+  }
+}
+
+############################################################################################################################
+
+
+counterBicycle <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonBicycle))) {
+    if(startTimeT1[i] <= jsonBicycle[x] && endTimeT2[i] >= jsonBicycle[x] ){
+      counterBicycle <- counterBicycle + 1
+    }else{
+    }
+  }
+}
+
+############################################################################################################################
+
+
+counterTruck <- 0
+
+for (i in 1 : (length(startTimeT1))) {
+  for (x in 1 : (length(jsonTruck))) {
+    if(startTimeT1[i] <= jsonTruck[x] && endTimeT2[i] >= jsonTruck[x] ){
+      counterTruck <- counterTruck + 1
+    }else{
+    }
+  }
+}
 
 ############################################################################################################################
 ############################################################################################################################
@@ -302,13 +498,13 @@ boxplotResultsFunction(ResultTableT1T2WidthAmplitude$resultsT2MinusT1, "boxplot 
  #*****************************************************************************************************************************
  
  #delete NA rows
- ResultTableT1T2WidthAmplitudeWithoutNA<-ResultTableT1T2WidthAmplitude[complete.cases(ResultTableT1T2WidthAmplitude), ]
+ ResultTableT1T2WidthAmplitude<-ResultTableT1T2WidthAmplitude[complete.cases(ResultTableT1T2WidthAmplitude), ]
  
  counterCar <- 0
  
- for (i in 1 : (length(ResultTableT1T2WidthAmplitudeWithoutNA$t1))) {
+ for (i in 1 : (length(ResultTableT1T2WidthAmplitude$t1))) {
    for (x in 1 : (length(jsonCar))) {
-     if(ResultTableT1T2WidthAmplitudeWithoutNA$t1[i] <= jsonCar[x] && ResultTableT1T2WidthAmplitudeWithoutNA$t2[i] >= jsonCar[x] && ResultTableT1T2WidthAmplitudeWithoutNA$vehicleOverlapping[i] == "car" ){
+     if(ResultTableT1T2WidthAmplitude$t1[i] <= jsonCar[x] && ResultTableT1T2WidthAmplitude$t2[i] >= jsonCar[x] && ResultTableT1T2WidthAmplitude$vehicleOverlapping[i] == "car" ){
        counterCar <- counterCar + 1
      }else{
      }
