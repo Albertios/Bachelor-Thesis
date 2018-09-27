@@ -75,7 +75,6 @@ while (i < length(csvDataFromArduino$timeInMilliseconds)-1) {
     t1[i] <- c(csvDataFromArduino$timeInMilliseconds[i])
     timeT[i] <- paste0("= startTimeT", j  )
     j <- j +1
- 
   }
   else if((csvDataFromArduino$valueDifference[i]  <= 2 && aberrant && csvDataFromArduino$valueDifference[i+1] <= 2 && csvDataFromArduino$valueDifference[i+2] <= 2 ) ){
     
@@ -96,14 +95,6 @@ while (i < length(csvDataFromArduino$timeInMilliseconds)-1) {
 
 results <- endTimeT2 - startTimeT1
 resultsT2MinusT1 <- t2 -t1
-
-boxplot(results,ylim = c(200, 1000), yaxs = "i")
-
-boxplot(results, horizontal = TRUE, axes = FALSE, staplewex = 1)
-text(x=fivenum(results), labels =fivenum(results), y=1.25)
-text(x = boxplot.stats(results)$stats, labels = boxplot.stats(results)$stats, y = 1.25)
-title("Heisenbergstrasse time results(t2-t1) in milliseconds")
-
 
 #___________________________________________________________________________________________________________________________
 
