@@ -1,6 +1,10 @@
-# Bachelor
+# Bachelor Thesis
 
 This Bachelor Thesis presents a Wi-Fi-based solution for collecting city traffic data, using a wireless communication technology as a traffic sensing technology. The traffic data is collected with the help of a transmitter and receiver. The devices could be cost- effective solution. The Wi-Fi signal strength is measured in two test areas in M??nster. The first test area is Heisenbergstrasse, a single-lane road with little traffic. The second test area is an ending two-lane federal highway with a high traffic volume. The evaluation of the Wi-Fi data is based on amplitude-method and width-method. The amplitude- method shows the signal strength change of a passing vehicle. The width-method, on the other hand, shows the time span of the signal strength change of a passing vehicle. Both procedures give an indication of the vehicle type. Accuracy varies according to vehicle type and location. The accuracy, which it is e.g. a car, is with both procedures in the Steinfurter road about 50%. Thus, both methods are initially suitable to a limited extent for vehicle identification and traffic counting.
+
+
+Figure 1: 
+![alt text](https://github.com/Albertios/Bachelor-Thesis/blob/master/images/heisenbergstrasseConstruction.jpg?raw=true "Construction")
 
 ## Getting Started
 
@@ -27,12 +31,17 @@ Also the R script is ready to use. As with the html page, the path of csv and JS
 The purpose of this website was to collect data as accurately as possible. For this goal
 the website has a few tools like buttons, keyboard shortcuts, tables and live information about current video time in milliseconds. There were several ways to save the video time when, for example, a car passed by:
 1. By pushing one of the three buttons below the video.
-2. Using the keyboard shortcuts 1, 2 or 3 (see figure 3.5 red box 1).
+2. Using the keyboard shortcuts 1, 2 or 3 (see figure 2 red box 1).
 The current video time will be immediately saved in milliseconds in the red box 2 and 3. The first one is only for the visual view and shows the newest first (see column bicycle). After every time stamp is an x button. It deletes the time from box 2 and 3. The red box 3 is just a text area where JSON document is stored. After, it can be copied out. The speed of the video can speed up, slow down or skip 5 seconds back.
+
+
+Figure 2: 
+![alt text]( https://github.com/Albertios/Bachelor-Thesis/blob/master/images/HeisenbergstrasseScreenshotWebApp.png?raw=true "Web App")
+
 
 ## How the R script works
 
-The raw data from Arduino and the JSON files from the video evaluation are imported into the R script. After that, the data is read, converted and synchronized into the same time series. As a consequence, the length of the data is compared and adjusted. To avoid an error message, the data from Arduino must be even. The algorithm goes through different phases to get the grand truth (see Fig.4.1). These phases are applied in the amplitude method and the width method.
+The raw data from Arduino and the JSON files from the video evaluation are imported into the R script. After that, the data is read, converted and synchronized into the same time series. As a consequence, the length of the data is compared and adjusted. To avoid an error message, the data from Arduino must be even. The algorithm goes through different phases to get the grand truth. These phases are applied in the amplitude method and the width method.
 
 
 ### Amplitude - based method
@@ -49,7 +58,7 @@ for (i in 1:(amplitudecsvDataFromArduinoLength)){
 }
 ```
 
-### Width - Based Method
+### Width - based method
 
 The aim of this method is to determine the width of every peak. The calculated width of a peak is the time span, i.e. how long the peak lasted. Several problems occur with this method. The first problem is that not every peak is relevant and the second problem is to determine when a peak starts and ends. The following code solves these problems. The code works with the difference between every signal strength (the current value and the previous one). In contrast to the amplitude method, this method calculates every difference. The calculated values are all set positively. To determine the starting point, two queries are required. The first query selects the noise and accepts values greater than 2. That the noise is at the value of 2 could easily be seen from the plots of the Heisenbergstrasse and Steinfurter Strasse. The second query is a logic query. The Boolean value must be FALSE for if to apply. In the if query, the Boolean variable is converted to TRUE. This guarantees that each starting point has an end point. To find the end of each peak, four conditions must be met: the Boolean value must be TRUE and three consecutive values must be less than or equal to 2. This ensures that it is actually the end of a peak.
 
